@@ -5,7 +5,6 @@ import re
 def create_vacancies_template(vacancies_data):
     template = ""
 
-    # Определяем список вакансий
     vacancies = vacancies_data
     if isinstance(vacancies_data, dict) and vacancies_data.get("items"):
         vacancies = vacancies_data["items"]
@@ -17,7 +16,7 @@ def create_vacancies_template(vacancies_data):
         city = vacancy.get("area", {}).get("name", "Не указан")
         employer = vacancy.get("employer", {}).get("name", "Не указан работодатель")
 
-        # ---------- ЗАРПЛАТА ----------
+        # ---------- Salary ----------
         salary_info = vacancy.get("salary")
         if salary_info:
             s_from = salary_info.get("from")
@@ -38,7 +37,7 @@ def create_vacancies_template(vacancies_data):
         else:
             salary_text = "Не указана"
 
-        # ---------- ПРОЧЕЕ ----------
+        # ---------- Other ----------
         experience = vacancy.get("experience", {}).get("name", "Не указан")
         employment = vacancy.get("employment", {}).get("name", "Не указана")
 
@@ -52,14 +51,12 @@ def create_vacancies_template(vacancies_data):
             or "Не указан"
         )
 
-        # Убираем <highlighttext> из требований
         requirements = vacancy.get("snippet", {}).get("requirement")
         if requirements:
             requirements = re.sub(r"</?highlighttext>", "", requirements)
         else:
             requirements = "Без требований"
 
-        # Дата
         published_at = vacancy.get("published_at")
         if published_at:
             try:
@@ -72,7 +69,7 @@ def create_vacancies_template(vacancies_data):
 
         link = vacancy.get("alternate_url", "Ссылка не доступна")
 
-        # ---------- ШАБЛОН ВАКАНСИИ ----------
+        # ---------- Vacancy template ----------
         template += (
             f"📌 <b>Вакансия: {name} | {employer}</b>\n"
             f"💰 <b>Зарплата:</b> {salary_text}\n\n"
@@ -86,7 +83,7 @@ def create_vacancies_template(vacancies_data):
             f"{'-' * 40}\n\n"
         )
 
-    # ---------- ПАГИНАЦИЯ ----------
+    # ---------- Pagination ----------
     if (
         isinstance(vacancies_data, dict)
         and vacancies_data.get("page") is not None

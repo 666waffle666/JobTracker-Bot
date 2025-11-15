@@ -165,7 +165,6 @@ async def get_only_with_salary(callback: types.CallbackQuery, state: FSMContext)
 
     data = await state.get_data()
 
-    # Сохраняем в БД
     async with async_session() as session:
         result = await session.execute(
             select(User).where(User.telegram_id == callback.from_user.id)
@@ -194,7 +193,6 @@ async def get_only_with_salary(callback: types.CallbackQuery, state: FSMContext)
             salary=data.get("salary"),
             period=data.get("period"),
             only_with_salary=only_with_salary,
-            # оставшиеся поля можно оставить по умолчанию
             page=0,
             per_page=5,
             order_by="publication_time",
