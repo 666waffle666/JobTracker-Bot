@@ -3,13 +3,13 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from .scheduler import start_scheduler
 from app.config import Config
-from .handlers import start_router, setup_router, list_router
+from .handlers import start_router, setup_router, list_router, notifications_router
 
 bot = Bot(token=Config.BOT_TOKEN)  # Bot instance
 dp = Dispatcher()  # event manager
 
 # event handlers
-dp.include_routers(start_router, setup_router, list_router)
+dp.include_routers(start_router, setup_router, list_router, notifications_router)
 
 
 async def main():

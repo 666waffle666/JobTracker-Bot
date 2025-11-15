@@ -161,6 +161,6 @@ async def get_only_with_salary(callback: types.CallbackQuery, state: FSMContext)
         await session.commit()
 
     await callback.message.answer(  # type: ignore
-        "Фильтры для поиска вакансий сохранены ✅\nЧтобы посмотреть вакансии на данный момент используйте /list\nВключите уведомления /notify чтобы вам приходили уведомления о новых вакансиях"
+        "Фильтры для поиска вакансий сохранены ✅\nЧтобы посмотреть вакансии на данный момент используйте /list\nВключите уведомления /notifications чтобы вам приходили уведомления о новых вакансиях"
     )
     await state.clear()
