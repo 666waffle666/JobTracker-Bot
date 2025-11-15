@@ -35,7 +35,13 @@ async def get_text(message: types.Message, state: FSMContext):
     keywords = [k.strip() for k in message.text.split(",")]  # type: ignore
     await state.update_data(text=", ".join(keywords))
     await state.set_state(QueryStates.area)
-    await message.answer("Введите город или регион (например: Москва)")
+
+    kb = InlineKeyboardBuilder()
+    kb.button(text="Пропустить", callback_data="skip_area")
+
+    await message.answer(
+        "Введите город или регион (например: Москва)", reply_markup=kb.as_markup()
+    )
 
 
 @setup_router.message(QueryStates.area)
@@ -52,6 +58,23 @@ async def get_area(message: types.Message, state: FSMContext):
     kb.adjust(2)
 
     await message.answer("Выберите уровень опыта:", reply_markup=kb.as_markup())
+
+
+@setup_router.callback_query(QueryStates.area)
+async def skip_area(callback: types.CallbackQuery, state: FSMContext):
+    await state.update_data(area=None)
+    await state.set_state(QueryStates.experience)
+
+    kb = InlineKeyboardBuilder()
+    kb.button(text="Без опыта", callback_data="noExperience")
+    kb.button(text="1–3 года", callback_data="between1And3")
+    kb.button(text="3–6 лет", callback_data="between3And6")
+    kb.button(text="Более 6 лет", callback_data="moreThan6")
+    kb.adjust(2)
+
+    await callback.message.answer(  # type: ignore
+        "Выберите уровень опыта:", reply_markup=kb.as_markup()
+    )
 
 
 @setup_router.callback_query(QueryStates.experience)
@@ -76,8 +99,12 @@ async def get_work_format(callback: types.CallbackQuery, state: FSMContext):
     await state.update_data(work_format=callback.data)
     await state.set_state(QueryStates.salary)
 
+    kb = InlineKeyboardBuilder()
+    kb.button(text="Пропустить", callback_data="skip_work_format")
+
     await callback.message.answer(  # type: ignore
-        "Введите желаемую зарплату (числом) или напишите 0 чтобы пропустить этот пункт"
+        "Введите желаемую зарплату (числом)",
+        reply_markup=kb.as_markup(),
     )
 
 
@@ -96,6 +123,23 @@ async def get_salary(message: types.Message, state: FSMContext):
     kb.adjust(2)
 
     await message.answer(
+        "Выберите за какой период искать вакансии:", reply_markup=kb.as_markup()
+    )
+
+
+@setup_router.callback_query(QueryStates.salary)
+async def skip_salary(callback: types.CallbackQuery, state: FSMContext):
+    await state.update_data(salary=None)
+    await state.set_state(QueryStates.period)
+
+    kb = InlineKeyboardBuilder()
+    kb.button(text="1 день", callback_data="1")
+    kb.button(text="3 дня", callback_data="3")
+    kb.button(text="7 дней", callback_data="7")
+    kb.button(text="30 дней", callback_data="30")
+    kb.adjust(2)
+
+    await callback.message.answer(  # type: ignore
         "Выберите за какой период искать вакансии:", reply_markup=kb.as_markup()
     )
 

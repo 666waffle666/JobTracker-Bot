@@ -37,7 +37,7 @@ async def list_vacancies(message: types.Message):
 @list_router.callback_query()
 async def handle_pagination(callback: CallbackQuery):
     statement = select(QueryParameters).where(
-        QueryParameters.user_id == callback.from_user.id  # type: ignore
+        QueryParameters.user_id == callback.from_user.id
     )
     async with async_session() as session:
         res = await session.execute(statement)
