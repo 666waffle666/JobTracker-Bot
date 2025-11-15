@@ -13,6 +13,7 @@ notifications_router = Router(name="notifications")
 async def toggle_notifications(message: Message):
     async with async_session() as session:
         if message.from_user is None:
+            await message.answer("Не могу определить пользователя 🤷‍♂️")
             return
 
         statement = (

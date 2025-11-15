@@ -3,21 +3,23 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from app.db.database import async_session
 from app.db.models import User
-from sqlalchemy import select
+from app.db.crud import get_user_by_telegram_id
 
 start_router = Router(name="start")
 
 
 @start_router.message(Command(commands=["start"]))
 async def start_handler(message: Message):
+    if message.from_user is None:
+        await message.answer("Не могу определить пользователя 🤷‍♂️")
+        return
+
     async with async_session() as session:
-        statement = select(User).where(User.telegram_id == message.from_user.id)  # type: ignore
-        result = await session.execute(statement)
-        user = result.fetchone()
+        user = get_user_by_telegram_id(message.from_user.id)
         if not user:
             new_user = User(
-                telegram_id=message.from_user.id,  # type: ignore
-                username=message.from_user.username,  # type: ignore
+                telegram_id=message.from_user.id,
+                username=message.from_user.username,
             )
             session.add(new_user)
             await session.commit()

@@ -4,7 +4,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram import types, Router
 from aiogram.filters import Command
 from app.db.database import async_session
-from app.db.models import User, QueryParameters
+from app.db.models import QueryParameters
+from app.db.crud import get_user_by_telegram_id
 from sqlalchemy import select
 from app.api.areas import get_area_id
 
@@ -166,10 +167,7 @@ async def get_only_with_salary(callback: types.CallbackQuery, state: FSMContext)
     data = await state.get_data()
 
     async with async_session() as session:
-        result = await session.execute(
-            select(User).where(User.telegram_id == callback.from_user.id)
-        )
-        user = result.scalars().first()
+        user = await get_user_by_telegram_id(callback.from_user.id)
         if not user:
             await callback.message.answer("Сначала используйте /start")  # type: ignore
             await state.clear()
