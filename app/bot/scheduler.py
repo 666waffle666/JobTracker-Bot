@@ -32,7 +32,7 @@ async def check_new_vacancies(bot: Bot):
             if not vacancies:
                 continue
 
-            seen = await get_seen_vacancies(user.telegram_id)
+            seen = await get_seen_vacancies(str(user.telegram_id))
             new_vacancies = [v for v in vacancies if v["id"] not in seen]
 
             if new_vacancies:
@@ -45,11 +45,11 @@ async def check_new_vacancies(bot: Bot):
 
                 # Обновляем список последних вакансий
                 await set_seen_vacancies(
-                    user.telegram_id, [v["id"] for v in new_vacancies]
+                    str(user.telegram_id), [v["id"] for v in new_vacancies]
                 )
 
 
 def start_scheduler(bot: Bot):
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(check_new_vacancies, "interval", minutes=30, args=[bot])
+    scheduler.add_job(check_new_vacancies, "interval", minutes=0.1, args=[bot])
     scheduler.start()
