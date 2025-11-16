@@ -11,6 +11,7 @@ dp = Dispatcher()  # event manager
 # event handlers
 dp.include_routers(start_router, setup_router, list_router, notifications_router)
 
+
 # commands
 commands = [
     types.BotCommand(command="start", description="Запустить бота"),
