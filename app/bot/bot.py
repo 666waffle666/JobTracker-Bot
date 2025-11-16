@@ -16,6 +16,7 @@ dp.include_routers(start_router, setup_router, list_router, notifications_router
 commands = [
     types.BotCommand(command="start", description="Запустить бота"),
     types.BotCommand(command="setup", description="Настроить фильтры"),
+    types.BotCommand(command="list", description="Просмотреть вакансии по фильтрам"),
     types.BotCommand(
         command="notifications", description="Включить/выключить уведомления"
     ),

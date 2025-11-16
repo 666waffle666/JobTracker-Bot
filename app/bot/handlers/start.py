@@ -1,9 +1,8 @@
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
-from app.db.database import async_session
-from app.db.models import User
-from app.db.crud import get_user_by_telegram_id
+import httpx
+from app.config import Config
 
 start_router = Router(name="start")
 
@@ -14,15 +13,14 @@ async def start_handler(message: Message):
         await message.answer("Не могу определить пользователя 🤷‍♂️")
         return
 
-    async with async_session() as session:
-        user = get_user_by_telegram_id(message.from_user.id)
-        if not user:
-            new_user = User(
-                telegram_id=message.from_user.id,
-                username=message.from_user.username,
-            )
-            session.add(new_user)
-            await session.commit()
+    async with httpx.AsyncClient() as client:
+        await client.post(
+            f"{Config.API_HOST}:{Config.API_PORT}",
+            json={
+                "telegram_id": message.from_user.id,
+                "username": message.from_user.username,
+            },
+        )
     await message.answer(
         "Привет! Я JobTracker. Чтобы получать уведомления о новых вакансиях на HH.ru настрой меня /setup"
     )

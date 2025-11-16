@@ -2,9 +2,10 @@ from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import CallbackQuery
-from app.api.vacancies import get_vacancies_data
+import httpx
+from app.config import Config
+from app.external_api.vacancies import get_vacancies_data
 from app.db.crud import get_user_params
-from app.db.database import async_session
 from app.bot.chat_templates.vacancies import create_vacancies_template
 
 list_router = Router(name="list")
@@ -34,29 +35,19 @@ async def list_vacancies(message: types.Message):
 
 @list_router.callback_query()
 async def handle_pagination(callback: CallbackQuery):
-    async with async_session() as session:
-        params = await get_user_params(callback.from_user.id)
+    async with httpx.AsyncClient() as client:
+        response = await client.put(
+            f"{Config.API_HOST}:{Config.API_PORT}/users/{callback.from_user.id}/params?action={callback.data}"
+        )
+        response = response.json()
 
-        if not params:
-            await callback.answer(
-                "Сначала настройте фильтры при помощи /setup", show_alert=True
-            )
+        if response["page"] is None:
+            await callback.message.edit_text(response["message"])  # type: ignore
             return
 
-        page = params.page or 0
-
-        if callback.data == "back" and page > 0:
-            page -= 1
-        elif callback.data == "next":
-            page += 1
-        else:
-            page = 0
-
-        params.page = page
-        await session.commit()
-
-        new_params = params.to_dict(exclude=["id", "user_id"])  # type: ignore
-        vacancies_data = await get_vacancies_data({**new_params, "page": page})
+        vacancies_data = await get_vacancies_data(
+            {**response["new_params"], "page": response["page"]}
+        )
 
         kb = InlineKeyboardBuilder()
         kb.button(text="В начало", callback_data="first")

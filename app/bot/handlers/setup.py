@@ -3,11 +3,9 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram import types, Router
 from aiogram.filters import Command
-from app.db.database import async_session
-from app.db.models import QueryParameters
-from app.db.crud import get_user_by_telegram_id
-from sqlalchemy import select
-from app.api.areas import get_area_id
+import httpx
+from app.config import Config
+from app.external_api.areas import get_area_id
 
 
 class QueryStates(StatesGroup):
@@ -166,39 +164,28 @@ async def get_only_with_salary(callback: types.CallbackQuery, state: FSMContext)
 
     data = await state.get_data()
 
-    async with async_session() as session:
-        user = await get_user_by_telegram_id(callback.from_user.id)
-        if not user:
-            await callback.message.answer("Сначала используйте /start")  # type: ignore
-            await state.clear()
-            return
+    only_with_salary = True if data.get("only_with_salary") == "true" else False
 
-        result = await session.execute(
-            select(QueryParameters).where(QueryParameters.user_id == user.telegram_id)
+    new_parameters = {
+        "text": data.get("text"),
+        "area": data.get("area"),
+        "experience": data.get("experience"),
+        "work_format": data.get("work_format"),
+        "salary": data.get("salary"),
+        "period": data.get("period"),
+        "only_with_salary": only_with_salary,
+        "page": 0,
+        "per_page": 5,
+        "order_by": "publication_time",
+        "accept_temporary": None,
+        "employment_form": None,
+    }
+
+    async with httpx.AsyncClient() as client:
+        await client.post(
+            f"{Config.API_HOST}:{Config.API_PORT}/users/{callback.from_user.id}/params",
+            json=new_parameters,
         )
-        existing_query_params = result.scalar_one_or_none()
-        if existing_query_params:
-            await session.delete(existing_query_params)
-
-        only_with_salary = True if data.get("only_with_salary") == "true" else False
-
-        new_query = QueryParameters(
-            user_id=user.telegram_id,
-            text=data.get("text"),
-            area=data.get("area"),
-            experience=data.get("experience"),
-            work_format=data.get("work_format"),
-            salary=data.get("salary"),
-            period=data.get("period"),
-            only_with_salary=only_with_salary,
-            page=0,
-            per_page=5,
-            order_by="publication_time",
-            accept_temporary=None,
-            employment_form=None,
-        )
-        session.add(new_query)
-        await session.commit()
 
     await callback.message.answer(  # type: ignore
         "Фильтры для поиска вакансий сохранены ✅\nЧтобы посмотреть вакансии на данный момент используйте /list\nВключите уведомления /notifications чтобы вам приходили уведомления о новых вакансиях"

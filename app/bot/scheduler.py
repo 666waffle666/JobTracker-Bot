@@ -5,7 +5,7 @@ from app.bot.chat_templates.vacancies import create_vacancies_template
 from app.db.database import async_session
 from app.db.models import User
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from app.api.vacancies import get_vacancies_data
+from app.external_api.vacancies import get_vacancies_data
 from app.db.cache import get_last_check, set_last_check
 from datetime import datetime, timezone
 
